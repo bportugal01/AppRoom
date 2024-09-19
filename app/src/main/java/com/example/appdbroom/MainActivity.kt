@@ -16,11 +16,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -86,6 +91,8 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
     var telefone by remember { mutableStateOf("") }
     var pessoaList by remember { mutableStateOf(listOf<Pessoa>()) }
     var showSuccessMessage by remember { mutableStateOf(false) }
+    var isEditing by remember { mutableStateOf(false) }
+    var pessoaBeingEdited by remember { mutableStateOf<Pessoa?>(null) } // Pessoa sendo editada
 
     // Atualiza a lista de pessoas quando o ViewModel muda
     LaunchedEffect(viewModel) {
@@ -131,7 +138,7 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                 modifier = Modifier.height(55.dp), // Reduzindo a altura da BottomBar
                 content = {
                     Text(
-                        text = "BottomBar Content",
+                        text = "© | Bruno Portugal",
                         modifier = Modifier
                             .align(Alignment.CenterVertically)
                             .padding(horizontal = 16.dp)
@@ -152,7 +159,7 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                 // Mostrar mensagem de sucesso
                 if (showSuccessMessage) {
                     Text(
-                        text = "Cadastrado com sucesso!",
+                        text = if (isEditing) "Atualizar" else "Cadastrado com sucesso!",
                         color = Color(0xFF28A745),
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -200,19 +207,25 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                 Button(
                     onClick = {
                         if (nome.isNotBlank() && telefone.isNotBlank()) {
-                            viewModel.upsertPessoa(Pessoa(nome, telefone))
+                            val pessoa = pessoaBeingEdited?.copy(nome = nome, telefone = telefone)
+                                ?: Pessoa(nome, telefone)
+
+                            viewModel.upsertPessoa(pessoa)
                             nome = ""
                             telefone = ""
+                            isEditing = false
+                            pessoaBeingEdited = null
                             showSuccessMessage = true // Inicia a exibição da mensagem
                         }
                     },
+                    enabled = nome.isNotBlank() && telefone.isNotBlank(), // Habilita o botão somente se os campos estiverem preenchidos
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF28A745), // Cor de fundo do botão
+                        containerColor = if (isEditing) Color(0xFF007BFF) else Color(0xFF28A745), // Cor do botão dependendo se está editando ou não
                         contentColor = Color.White  // Cor do texto do botão
                     )
                 ) {
-                    Text("Cadastrar")
+                    Text(if (isEditing) "Atualizar" else "Cadastrar")
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -238,6 +251,34 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                                 modifier = Modifier.weight(1f),
                                 color = Color.Gray
                             )
+                            IconButton(
+                                onClick = {
+                                    // Iniciar edição
+                                    nome = pessoa.nome
+                                    telefone = pessoa.telefone
+                                    isEditing = true
+                                    pessoaBeingEdited = pessoa
+                                },
+                                modifier = Modifier.padding(start = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = "Edit",
+                                    tint = Color.Blue
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    viewModel.deletePessoa(pessoa) // Chama o método para deletar
+                                },
+                                modifier = Modifier.padding(start = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Delete,
+                                    contentDescription = "Delete",
+                                    tint = Color.Red
+                                )
+                            }
                         }
                         Divider()
                     }
