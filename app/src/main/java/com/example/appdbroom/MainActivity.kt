@@ -159,7 +159,7 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
                 // Mostrar mensagem de sucesso
                 if (showSuccessMessage) {
                     Text(
-                        text = if (isEditing) "Atualizar" else "Cadastrado com sucesso!",
+                        text = if (isEditing) "Atualizado com sucesso!" else "Cadastrado com sucesso!",
                         color = Color(0xFF28A745),
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -232,55 +232,67 @@ fun App(viewModel: PessoaViewModel, mainActivity: MainActivity) {
 
                 Divider()
 
-                LazyColumn {
-                    items(pessoaList) { pessoa ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = pessoa.nome,
-                                modifier = Modifier.weight(1f),
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Text(
-                                text = pessoa.telefone,
-                                modifier = Modifier.weight(1f),
-                                color = Color.Gray
-                            )
-                            IconButton(
-                                onClick = {
-                                    // Iniciar edição
-                                    nome = pessoa.nome
-                                    telefone = pessoa.telefone
-                                    isEditing = true
-                                    pessoaBeingEdited = pessoa
-                                },
-                                modifier = Modifier.padding(start = 16.dp)
+                // Mostrar mensagem de "Nenhum registro cadastrado" se a lista estiver vazia
+                if (pessoaList.isEmpty()) {
+                    Text(
+                        text = "Nenhum registro cadastrado.",
+                        color = Color.Gray,
+                        modifier = Modifier
+                            .align(Alignment.CenterHorizontally)
+                            .padding(vertical = 16.dp)
+                    )
+                } else {
+                    // Exibe a lista de pessoas
+                    LazyColumn {
+                        items(pessoaList) { pessoa ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Edit,
-                                    contentDescription = "Edit",
-                                    tint = Color.Blue
+                                Text(
+                                    text = pessoa.nome,
+                                    modifier = Modifier.weight(1f),
+                                    fontWeight = FontWeight.Bold
                                 )
-                            }
-                            IconButton(
-                                onClick = {
-                                    viewModel.deletePessoa(pessoa) // Chama o método para deletar
-                                },
-                                modifier = Modifier.padding(start = 16.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Delete,
-                                    contentDescription = "Delete",
-                                    tint = Color.Red
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Text(
+                                    text = pessoa.telefone,
+                                    modifier = Modifier.weight(1f),
+                                    color = Color.Gray
                                 )
+                                IconButton(
+                                    onClick = {
+                                        // Iniciar edição
+                                        nome = pessoa.nome
+                                        telefone = pessoa.telefone
+                                        isEditing = true
+                                        pessoaBeingEdited = pessoa
+                                    },
+                                    modifier = Modifier.padding(start = 16.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit",
+                                        tint = Color.Blue
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        viewModel.deletePessoa(pessoa) // Chama o método para deletar
+                                    },
+                                    modifier = Modifier.padding(start = 16.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete",
+                                        tint = Color.Red
+                                    )
+                                }
                             }
+                            Divider()
                         }
-                        Divider()
                     }
                 }
             }
